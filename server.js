@@ -6,12 +6,15 @@ const express = require('express');
 const cors = require('cors');
 
 const server = express();
+
 //server open for all clients requests
 server.use(cors());
 
 const PORT = 5500;
 
-const fs = require('fs');
+// const fs = require('fs');
+const Moviedata = require('./Movie_Data/data.json');
+
 
 
 
@@ -33,19 +36,19 @@ const fs = require('fs');
 //     this.media_type = mediaType;
 // }
 
+
+function Movie(title, posterPath, overview) {
+    this.title = title;
+    this.poster_path = posterPath;
+    this.overview = overview;
+}
+
 //Routes
 
 //home route
 server.get('/', (req, res) => {
-    let data = fs.readFileSync('Movie_Data/data.json');
-    let jsonData = JSON.parse(data);
-
-    let Obj = JSON.stringify({
-        title: jsonData.title,
-        poster_path: jsonData.poster_path,
-        overview: jsonData.overview
-    });
-    res.send(Obj);
+    let singleMovie = new Movie(Moviedata.title, Moviedata.poster_path, Moviedata.overview);
+    res.send(singleMovie);
 })
 
 //favorite route
@@ -54,21 +57,24 @@ server.get('/favorite', (req, res) => {
 })
 
 // 404 errors
-server.use(function (req, res, next) {
-    let jsonObj = JSON.stringify({ status: 404, responseText: 'Sorry, page not found' });
-    res.status(404).send(jsonObj);
-});
+server.get('*', (req, res) => {
+    const errorObj = {
+        status: 404,
+        responseText: 'Sorry, page not found'
+    }
+    res.status(404).send(errorObj);
+})
+
 
 // server errors
-server.use(function (err, req, res, next) {
-    let jsonObj = JSON.stringify({ status: 500, responseText: 'Sorry, something went wrong' });
-    res.status(500).send(jsonObj);
+server.use(function (err, req, res) {
+    const errorObj = {
+        status: 500,
+        responseText: 'Sorry, something went wrong'
+    }
+    res.status(500).send(errorObj);
 });
 
-//default route
-// server.get('*', (req, res) => {
-
-// })
 
 // http://localhost:5500 => (Ip = localhost) (port = 5500)
 server.listen(PORT, () => {
