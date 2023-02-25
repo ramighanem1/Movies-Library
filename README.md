@@ -5,15 +5,17 @@
 
 ## WRRC
 
-### Request 1 : 
+### Home Page Get (localhost:5500/) : 
 ![Request 1](Data/Request_1.PNG)
 
-### Request 2 : 
+### favorit (localhost:5500/favorit): 
 ![Request 2](Data/Request_2.PNG)
 
-### Request 3 : 
+### page not found (localhost:5500/...): 
 ![Request 3](Data/Request_3.PNG)
 
+### theard party api get (localhost:5500/trending,localhost:5500/search,localhost:5500/now_playing,localhost:5500/upcoming) : 
+![Request 4](Data/Request_4.PNG)
 
 
 ## Overview

@@ -10,10 +10,14 @@ const server = express();
 //server open for all clients requests
 server.use(cors());
 
+
 const PORT = 5500;
 
 // const fs = require('fs');
 const Moviedata = require('./Movie_Data/data.json');
+
+const axios = require('axios');
+require('dotenv').config();
 
 
 
@@ -37,17 +41,18 @@ const Moviedata = require('./Movie_Data/data.json');
 // }
 
 
-function Movie(title, posterPath, overview) {
+function Movie(title, posterPath, overview,id) {
     this.title = title;
     this.poster_path = posterPath;
     this.overview = overview;
+    this.id = id;
 }
 
 //Routes
 
 //home route
 server.get('/', (req, res) => {
-    let singleMovie = new Movie(Moviedata.title, Moviedata.poster_path, Moviedata.overview);
+    let singleMovie = new Movie(Moviedata.title, Moviedata.poster_path, Moviedata.overview,Moviedata.id);
     res.send(singleMovie);
 })
 
@@ -55,6 +60,106 @@ server.get('/', (req, res) => {
 server.get('/favorite', (req, res) => {
     res.send("Welcome to Favorite Page");
 })
+
+// search
+server.get('/search', (req, res) => {
+    try {
+        const APIKey = process.env.APIKey;
+        const url = `https://api.themoviedb.org/3/search/movie?api_key=${APIKey}&language=en-US&query=The&page=2`;
+        axios.get(url)
+            .then((result) => {
+                let mapResult = result.data.results.map((movieData) => {
+                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview,movieData.id);
+                    return singleMovie;
+                })
+                res.send(mapResult);
+            })
+            .catch((err) => {
+                console.log("sorry", err);
+                res.status(500).send(err);
+            })
+    }
+    catch (error) {
+        errorHandler(error,req,res);
+    }
+})
+
+//favorite route
+server.get('/trending',(req, res) => {
+    try {
+        const APIKey = process.env.APIKey;
+        const url = `https://api.themoviedb.org/3/trending/all/week?api_key=${APIKey}&language=en-US`;
+        axios.get(url)
+            .then((result) => {
+                let mapResult = result.data.results.map((movieData) => {
+                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview,movieData.id);
+                    return singleMovie;
+                })
+                res.send(mapResult);
+            })
+            .catch((err) => {
+                console.log("sorry", err);
+                res.status(500).send(err);
+            })
+    }
+    catch (error) {
+        errorHandler(error,req,res);
+    }
+  
+})
+
+
+
+// now_playing
+server.get('/now_playing',(req, res) => {
+    try {
+       
+        const APIKey = process.env.APIKey;
+        const url =  `https://api.themoviedb.org/3/movie/now_playing?api_key=${APIKey}&language=en-US&page=1`;
+        axios.get(url)
+            .then((result) => {
+                let mapResult = result.data.results.map((movieData) => {
+                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview,movieData.id);
+                    return singleMovie;
+                })
+                res.send(mapResult);
+            })
+            .catch((err) => {
+                console.log("sorry", err);
+                res.status(500).send(err);
+            })
+    }
+    catch (error) {
+        errorHandler(error,req,res);
+    }
+  
+})
+
+
+// upcoming
+server.get('/upcoming',(req, res) => {
+    try {
+        const APIKey = process.env.APIKey;
+        const url =  `https://api.themoviedb.org/3/movie/upcoming?api_key=${APIKey}&language=en-US&page=1`;
+        axios.get(url)
+            .then((result) => {
+                let mapResult = result.data.results.map((movieData) => {
+                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview,movieData.id);
+                    return singleMovie;
+                })
+                res.send(mapResult);
+            })
+            .catch((err) => {
+                console.log("sorry", err);
+                res.status(500).send(err);
+            })
+    }
+    catch (error) {
+        errorHandler(error,req,res);
+    }
+  
+})
+
 
 // 404 errors
 server.get('*', (req, res) => {
@@ -66,14 +171,20 @@ server.get('*', (req, res) => {
 })
 
 
-// server errors
-server.use(function (err, req, res) {
-    const errorObj = {
+
+
+//middleware function
+function errorHandler(err, req, res) {
+    const errorObj  = {
         status: 500,
-        responseText: 'Sorry, something went wrong'
+        massage: err
     }
     res.status(500).send(errorObj);
-});
+}
+
+// server errors
+server.use(errorHandler)
+
 
 
 // http://localhost:5500 => (Ip = localhost) (port = 5500)
