@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS MovieInfo;
+
+CREATE TABLE IF NOT EXISTS MovieInfo (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255),
+    posterPath VARCHAR(255),
+    overview VARCHAR(10000)
+);

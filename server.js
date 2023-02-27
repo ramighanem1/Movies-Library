@@ -10,6 +10,9 @@ const server = express();
 //server open for all clients requests
 server.use(cors());
 
+// by default we cant see the req.body content so we use this middleware function  
+server.use(express.json());
+
 
 const PORT = 5500;
 
@@ -19,7 +22,11 @@ const Moviedata = require('./Movie_Data/data.json');
 const axios = require('axios');
 require('dotenv').config();
 
+//Database - > importing the pg 
+const pg = require('pg');
 
+//2. create obj from Client
+const client = new pg.Client(process.env.DATABASE_URL);
 
 
 // function Movie(title, genreIds, language, originalTitle, posterPath, video, voteAverage, overview, releaseDate, voteCount, id, adult, backdropPath, popularity, mediaType) {
@@ -41,18 +48,21 @@ require('dotenv').config();
 // }
 
 
-function Movie(title, posterPath, overview,id) {
+function Movie(title, posterPath, overview, id) {
     this.title = title;
     this.poster_path = posterPath;
     this.overview = overview;
     this.id = id;
 }
 
+
+
+
 //Routes
 
 //home route
 server.get('/', (req, res) => {
-    let singleMovie = new Movie(Moviedata.title, Moviedata.poster_path, Moviedata.overview,Moviedata.id);
+    let singleMovie = new Movie(Moviedata.title, Moviedata.poster_path, Moviedata.overview, Moviedata.id);
     res.send(singleMovie);
 })
 
@@ -69,7 +79,7 @@ server.get('/search', (req, res) => {
         axios.get(url)
             .then((result) => {
                 let mapResult = result.data.results.map((movieData) => {
-                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview,movieData.id);
+                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview, movieData.id);
                     return singleMovie;
                 })
                 res.send(mapResult);
@@ -80,19 +90,19 @@ server.get('/search', (req, res) => {
             })
     }
     catch (error) {
-        errorHandler(error,req,res);
+        errorHandler(error, req, res);
     }
 })
 
 //favorite route
-server.get('/trending',(req, res) => {
+server.get('/trending', (req, res) => {
     try {
         const APIKey = process.env.APIKey;
         const url = `https://api.themoviedb.org/3/trending/all/week?api_key=${APIKey}&language=en-US`;
         axios.get(url)
             .then((result) => {
                 let mapResult = result.data.results.map((movieData) => {
-                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview,movieData.id);
+                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview, movieData.id);
                     return singleMovie;
                 })
                 res.send(mapResult);
@@ -103,23 +113,23 @@ server.get('/trending',(req, res) => {
             })
     }
     catch (error) {
-        errorHandler(error,req,res);
+        errorHandler(error, req, res);
     }
-  
+
 })
 
 
 
 // now_playing
-server.get('/now_playing',(req, res) => {
+server.get('/now_playing', (req, res) => {
     try {
-       
+
         const APIKey = process.env.APIKey;
-        const url =  `https://api.themoviedb.org/3/movie/now_playing?api_key=${APIKey}&language=en-US&page=1`;
+        const url = `https://api.themoviedb.org/3/movie/now_playing?api_key=${APIKey}&language=en-US&page=1`;
         axios.get(url)
             .then((result) => {
                 let mapResult = result.data.results.map((movieData) => {
-                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview,movieData.id);
+                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview, movieData.id);
                     return singleMovie;
                 })
                 res.send(mapResult);
@@ -130,21 +140,21 @@ server.get('/now_playing',(req, res) => {
             })
     }
     catch (error) {
-        errorHandler(error,req,res);
+        errorHandler(error, req, res);
     }
-  
+
 })
 
 
 // upcoming
-server.get('/upcoming',(req, res) => {
+server.get('/upcoming', (req, res) => {
     try {
         const APIKey = process.env.APIKey;
-        const url =  `https://api.themoviedb.org/3/movie/upcoming?api_key=${APIKey}&language=en-US&page=1`;
+        const url = `https://api.themoviedb.org/3/movie/upcoming?api_key=${APIKey}&language=en-US&page=1`;
         axios.get(url)
             .then((result) => {
                 let mapResult = result.data.results.map((movieData) => {
-                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview,movieData.id);
+                    let singleMovie = new Movie(movieData.title, movieData.poster_path, movieData.overview, movieData.id);
                     return singleMovie;
                 })
                 res.send(mapResult);
@@ -155,9 +165,37 @@ server.get('/upcoming',(req, res) => {
             })
     }
     catch (error) {
-        errorHandler(error,req,res);
+        errorHandler(error, req, res);
     }
-  
+
+})
+
+//add Movie route
+server.post('/addMovie', (req, res) => {
+    const Movies = req.body;
+    const sql = `INSERT INTO MovieInfo (title, posterPath, overview) VALUES ($1, $2, $3) RETURNING *;`
+    const values = [Movies.title, Movies.poster_path, Movies.overview];
+
+    client.query(sql, values)
+        .then((data) => {
+            res.send("your data was added !");
+        })
+        .catch(error => {
+            // console.log(error);
+            errorHandler(error, req, res);
+        });
+})
+
+//get Movies route
+server.get('/getMovies', (req, res) => {
+    const sqlQuery = `SELECT * FROM MovieInfo`;
+    client.query(sqlQuery)
+        .then((data) => {
+            res.send(data.rows);
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        })
 })
 
 
@@ -175,7 +213,7 @@ server.get('*', (req, res) => {
 
 //middleware function
 function errorHandler(err, req, res) {
-    const errorObj  = {
+    const errorObj = {
         status: 500,
         massage: err
     }
@@ -185,9 +223,11 @@ function errorHandler(err, req, res) {
 // server errors
 server.use(errorHandler)
 
-
-
+//3. connect the server with movies database
 // http://localhost:5500 => (Ip = localhost) (port = 5500)
-server.listen(PORT, () => {
-    console.log(`listening on ${PORT} : I am ready`);
+client.connect()
+.then(()=>{
+    server.listen(PORT, () => {
+        console.log(`listening on ${PORT} : I am ready`);
+    });  
 })

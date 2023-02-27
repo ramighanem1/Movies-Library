@@ -17,6 +17,12 @@
 ### theard party api get (localhost:5500/trending,localhost:5500/search,localhost:5500/now_playing,localhost:5500/upcoming) : 
 ![Request 4](Data/Request_4.PNG)
 
+### get Movies (localhost:5500/getMovies) : 
+![Request 5](Data/Request_5.PNG)
+
+### add Movie (localhost:5500/addMovie): 
+![Request 6](Data/Request_6.PNG)
+
 
 ## Overview
 
