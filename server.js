@@ -199,6 +199,75 @@ server.get('/getMovies', (req, res) => {
 })
 
 
+
+// UPDATE Movies
+server.put('/UPDATE/:id', (req, res) => {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const Movies = req.body;
+        const sql = `UPDATE MovieInfo SET title =$1 , posterPath =$2 , overview =$3 WHERE id = ${id} RETURNING *;`
+        const values = [Movies.title, Movies.poster_path, Movies.overview];
+
+        client.query(sql, values)
+            .then((data) => {
+                res.status(200).send(data.rows);
+            })
+            .catch(error => {
+                // console.log(error);
+                errorHandler(error, req, res);
+            });
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+
+})
+
+//DELETE Movies
+server.delete('/DELETE/:id', (req, res) => {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const sqlQuery = `DELETE FROM MovieInfo WHERE id = ${id};`;
+        client.query(sqlQuery)
+            .then((data) => {
+                res.status(204).json({});
+            })
+            .catch((err) => {
+                errorHandler(err, req, res);
+            })
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+
+
+})
+
+
+//select Movies
+server.get('/getMovie/:id', (req, res) => {
+    const id = req.params.id;
+    if (!isNaN(id)) {
+        const sqlQuery = `SELECT * FROM MovieInfo WHERE id = ${id};`;
+        client.query(sqlQuery)
+            .then((data) => {
+                res.send(data.rows);
+            })
+            .catch((err) => {
+                errorHandler(err, req, res);
+            })
+    }
+    else {
+        res.send("Id Must Be Numaric");
+    }
+
+
+
+
+
+})
+
+
 // 404 errors
 server.get('*', (req, res) => {
     const errorObj = {
@@ -226,8 +295,8 @@ server.use(errorHandler)
 //3. connect the server with movies database
 // http://localhost:5500 => (Ip = localhost) (port = 5500)
 client.connect()
-.then(()=>{
-    server.listen(PORT, () => {
-        console.log(`listening on ${PORT} : I am ready`);
-    });  
-})
+    .then(() => {
+        server.listen(PORT, () => {
+            console.log(`listening on ${PORT} : I am ready`);
+        });
+    })

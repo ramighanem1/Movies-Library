@@ -23,6 +23,15 @@
 ### add Movie (localhost:5500/addMovie): 
 ![Request 6](Data/Request_6.PNG)
 
+### UPDATE Movie (localhost:5500/UPDATE/id): 
+![Request 7](Data/Request_7.PNG)
+
+### DELETE Movie (localhost:5500/DELETE/id): 
+![Request 8](Data/Request_8.PNG)
+
+### get Movies By Id (localhost:5500/getMovie/id): 
+![Request 9](Data/Request_9.PNG)
+
 
 ## Overview
 
